@@ -1,7 +1,7 @@
 <template>
     <div class="navbar">
         <div class="flex-box">
-            <el-button>
+            <el-button @click="handleCollapse">
                 <el-icon>
                     <Expand />
                 </el-icon>
@@ -28,18 +28,29 @@
 </template>
 <script setup>
 import { useRouter } from 'vue-router'
+import { useAdminStore } from '@/stores/admin'
+
+
 const router = useRouter()
 
 const handleCommand = (command) => {
     console.log(command)
     if (command === 'logout') {
-        router.push('/login')
+        // 退出登录
+        localStorage.removeItem('token')
+        localStorage.removeItem('userInfo')
+        router.push('/auth/login')
     }
 }
+
+const handleCollapse = () => {
+    useAdminStore().toggleCollapse()
+}
+
 </script>
 <style lang="scss" scoped>
 .navbar {
-    height: 64px;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;

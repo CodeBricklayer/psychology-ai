@@ -10,4 +10,12 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  server:{
+    proxy: {
+      '/api': {
+        target: 'http://159.75.169.224:1235',
+        changeOrigin: true
+      }
+    }
+  }
 })
