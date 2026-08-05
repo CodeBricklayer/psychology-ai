@@ -30,6 +30,7 @@
             <el-table-column prop="authorName" label="作者" , width="150" />
             <el-table-column prop="readCount" label="阅读量" , width="150" />
             <el-table-column prop="updatedAt" label="修改时间" , width="200" />
+            <el-table-column prop="statusText" label="状态" , width="150" />
             <el-table-column label="操作" width="240" fixed="right">
                 <template #default="scope">
                     <el-button text type="primary" @click="handleEdit(scope.row)">编辑</el-button>

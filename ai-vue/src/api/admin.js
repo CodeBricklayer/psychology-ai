@@ -93,3 +93,55 @@ export function updateKnowledgeArticleStatus(id, data) {
 export function deleteKnowledgeArticle(id) {
     return service.delete(`/knowledge/article/${id}`)
 }
+
+/**
+ * 分页查询咨询会话
+ * @param {*} params  分页查询参数
+ * @returns 咨询会话分页列表
+ */
+export function getConsultationPage(params) {
+    return service.get('/psychological-chat/sessions', { params: params })
+}
+
+/**
+ * 获取会话消息列表
+ * @param {*} sessionId  会话id
+ * @returns 会话消息列表
+ */
+export function viewConsultationDetail(sessionId) {
+    return service.get(`/psychological-chat/sessions/${sessionId}/messages`)
+}
+
+/**
+ * 分页查询情绪日记
+ * @param {*} params  分页查询参数
+ * @returns 情绪日记分页列表
+ */
+export function getEmotionalLogPage(params) {
+    return service.get('/emotion-diary/admin/page', { params: params })
+}
+
+/**
+ * 删除情绪日记
+ * @param {*} id  情绪日记id
+ * @returns 删除结果
+ */
+export function deleteEmotionalLog(id) {
+    return service.delete(`/emotion-diary/admin/${id}`)
+}
+
+/**
+ * 获取综合数据分析
+ * @returns 综合数据分析列表
+ */
+export function getDataAnalyticsOverview() {
+    return service.get('/data-analytics/overview')
+}
+
+/**
+ * 用户退出登录
+ * @returns 退出登录结果
+ */
+export function logout() {
+    return service.post('/user/logout')
+}

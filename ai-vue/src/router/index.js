@@ -1,11 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import BackendLayout from '@/components/BackendLayout.vue'
 import AuthLayout from '@/components/AuthLayout.vue'
+import FrontendLayout from '@/components/FrontendLayout.vue'
 
 // 路由配置
 const backendRoutes = [
     {
         path: '/back',
+        redirect: '/back/dashboard',
         component: BackendLayout,
         children: [
             {
@@ -16,7 +18,7 @@ const backendRoutes = [
                     icon: 'PieChart'
                 }
             },
-             {
+            {
                 path: 'knowledge',
                 component: () => import('@/views/knowledge.vue'),
                 meta: {
@@ -24,7 +26,7 @@ const backendRoutes = [
                     icon: 'ChatLineSquare'
                 }
             },
-             {
+            {
                 path: 'consultations',
                 component: () => import('@/views/consultations.vue'),
                 meta: {
@@ -32,7 +34,7 @@ const backendRoutes = [
                     icon: 'Message'
                 }
             },
-             {
+            {
                 path: 'emotional',
                 component: () => import('@/views/emotional.vue'),
                 meta: {
@@ -43,7 +45,7 @@ const backendRoutes = [
         ]
     },
     {
-        path:'/auth',
+        path: '/auth',
         component: AuthLayout,
         children: [
             {
@@ -64,9 +66,78 @@ const backendRoutes = [
     }
 ]
 
+const frontendRoutes = [
+    {
+        path: '/',
+        component: FrontendLayout,
+        children: [
+            {
+                path: '',
+                component: () => import('@/views/home.vue'),
+                meta: {
+                    title: '首页',
+                }
+            },
+            {
+                path: 'consultation',
+                component: () => import('@/views/consultation.vue'),
+                meta: {
+                    title: 'AI咨询',
+                }
+            },
+            {
+                path: 'emotion-diary',
+                component: () => import('@/views/emotionDiary.vue'),
+                meta: {
+                    title: '情绪日志',
+                }
+            },
+            {
+                path: 'knowledge',
+                component: () => import('@/views/frontendKnowledge.vue'),
+                meta: {
+                    title: '知识库',
+                }
+            }
+        ]
+    }
+]
+
 const router = createRouter({
     history: createWebHistory(),
-    routes: backendRoutes
+    routes: [...backendRoutes, ...frontendRoutes]
 })
+
+// 路由前置守卫
+router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem('token')
+    // 当前用户是否登录
+    if (token) {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+        // 如果是后台用户
+        if (userInfo.userType == 2) {
+            if (to.path.startsWith('/back')) {
+                next()
+            } else {
+                next('/back/dashboard')
+            }
+        } else if (userInfo.userType == 1){
+            // 用户端账号只能访问前台路由
+            if (to.path.startsWith('/back') || to.path.startsWith('/auth')) {
+                next('/')
+            } else {
+                next()
+            }
+        }
+    } else {
+        if (to.path.startsWith('/back')) {
+            // 如果是访问后台页面，那么跳转到登录页
+            next('/auth/login')
+        } else {
+            next()
+        }
+    }
+})
+
 
 export default router

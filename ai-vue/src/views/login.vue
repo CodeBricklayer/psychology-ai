@@ -39,6 +39,7 @@
 import { reactive, ref } from 'vue'
 import { login } from '@/api/admin'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 const ruleFormRef = ref()
 
@@ -61,8 +62,9 @@ const submitForm = async (formEl) => {
       login(formData).then(data => {
         // 判断token是否存在
         if (!data.token) {
-          return console.error('登录失败')
+          return ElMessage.error('登录失败')
         }
+        ElMessage.success('登录成功')
         // 登录成功，保存token和用户信息
         localStorage.setItem('token', data.token)
         localStorage.setItem('userInfo', JSON.stringify(data.userInfo))
@@ -73,6 +75,7 @@ const submitForm = async (formEl) => {
         }
       })
     } else {
+      ElMessage.error('登录失败')
       console.log('登录失败', fields)
     }
   })
