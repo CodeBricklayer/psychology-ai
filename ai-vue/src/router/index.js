@@ -98,6 +98,11 @@ const frontendRoutes = [
                 meta: {
                     title: '知识库',
                 }
+            },
+            {
+                path: 'knowledge/article/:id',
+                component: () => import('@/views/articleDetail.vue'),
+                props: true
             }
         ]
     }

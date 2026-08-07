@@ -154,7 +154,7 @@ import { onMounted, reactive, ref } from 'vue'
 import PageHead from '@/components/PageHead.vue'
 import TableSearch from '@/components/TableSearch.vue'
 import { getEmotionalLogPage, deleteEmotionalLog } from '@/api/admin'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 
 const formItem = [
     { comp: 'input', prop: 'userId', label: '用户ID', placeholder: '请输入用户ID' },

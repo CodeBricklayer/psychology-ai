@@ -23,7 +23,7 @@ export function getCategoryTree() {
  * @returns 文章分页列表
  * */
 export function getKnowledgeArticlePage(params) {
-    return service.get('/knowledge/article/page', { params: params })
+    return service.get('/knowledge/article/page', { params })
 }
 
 /**
@@ -100,7 +100,7 @@ export function deleteKnowledgeArticle(id) {
  * @returns 咨询会话分页列表
  */
 export function getConsultationPage(params) {
-    return service.get('/psychological-chat/sessions', { params: params })
+    return service.get('/psychological-chat/sessions', { params })
 }
 
 /**
@@ -118,7 +118,7 @@ export function viewConsultationDetail(sessionId) {
  * @returns 情绪日记分页列表
  */
 export function getEmotionalLogPage(params) {
-    return service.get('/emotion-diary/admin/page', { params: params })
+    return service.get('/emotion-diary/admin/page', { params })
 }
 
 /**

@@ -24,7 +24,7 @@ export function startSession(data) {
  * @returns 会话列表
  */
 export function getSessionList(params) {
-    return service.get('/psychological-chat/sessions', { params: params })
+    return service.get('/psychological-chat/sessions', { params })
 }
 
 /**
@@ -61,4 +61,22 @@ export function getEmotionAnalysis(sessionId) {
  * */
 export function submitDiaryData(data) {
     return service.post('/emotion-diary', data)
+}
+
+/**
+ * 查询知识文章列表
+ * @param {*} params  分页查询参数
+ * @returns 文章列表
+ */
+export function getKnowledgeList(params) {
+    return service.get('/knowledge/article/page', { params })
+}
+
+/**
+ * 获取知识文章详情
+ * @param {*} id 文章ID
+ * @returns 文章详情
+ */
+export function getKnowledgeDetail(id) {
+    return service.get(`/knowledge/article/${id}`)
 }
