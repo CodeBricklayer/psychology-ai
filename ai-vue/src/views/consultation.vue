@@ -265,18 +265,14 @@ const userMessage = ref('')
 // 定义AI助手是否正在输入
 const isAiTyping = ref(false)
 
-const INIT_EMOTION = {
-    primaryEmotion: "中性",
+// 定义情绪花园对象
+const currentEmotion = ref({
+      primaryEmotion: "中性",
     emotionScore: 50,
     isNegative: false,
     riskLevel: 0,
     suggestion: '情绪状态平稳',
     improvementSuggestions: []
-}
-
-// 定义情绪花园对象
-const currentEmotion = ref({
-    ...INIT_EMOTION
 })
 
 const loadSessionEmotion = (sessionId) => {
@@ -288,9 +284,6 @@ const loadSessionEmotion = (sessionId) => {
     if (sessionId.toString().startsWith("temp_")) {
         return
     }
-
-    // 重置为初始值
-    currentEmotion.value = { ...INIT_EMOTION }
 
     const id = sessionId.toString().startsWith("session_") ? sessionId : `session_${sessionId}`
 
