@@ -92,9 +92,10 @@
             <!-- 会话列表 -->
             <div class="session-history">
                 <h4 class="section-title">会话列表</h4>
-                <div class="session-list">
+                <div class="session-list" ref="sessionListRef">
                     <div class="session-item" v-for="session in sessionList" @click="handleSessionClick(session)"
-                        :key="session.id">
+                        :key="session.id" :ref="(el) => setSessionItemRef(el, session.id)"
+                        :class="{ active: isCurrentSession(session) }">
                         <div class="session-info">
                             <div class="session-title">
                                 <span>{{ session.sessionTitle }}</span>
@@ -221,7 +222,7 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ChatRound, Clock, DeleteFilled, Promotion } from '@element-plus/icons-vue'
 import { startSession, getSessionList, getSessionMessageList, deleteSession, getEmotionAnalysis } from '@/api/frontend'
@@ -252,6 +253,49 @@ const createNewFrontendSession = () => {
 
 // 定义一个当前会话对象
 const currentSession = ref(null)
+
+// 会话列表DOM引用
+const sessionListRef = ref(null)
+const sessionItemRefs = ref({})
+
+const setSessionItemRef = (el, sessionId) => {
+    if (el) {
+        sessionItemRefs.value[sessionId] = el
+    }
+}
+
+// 将当前会话滚动到列表中间
+const scrollSessionIntoMiddle = (sessionId) => {
+    nextTick(() => {
+        const container = sessionListRef.value
+        const item = sessionItemRefs.value[sessionId]
+        if (!container || !item) return
+
+        const containerHeight = container.clientHeight
+        const itemHeight = item.offsetHeight
+        const itemTop = item.offsetTop
+        const itemBottom = itemTop + itemHeight
+        const viewTop = container.scrollTop
+        const viewBottom = viewTop + containerHeight
+
+        // 如果已在可视区内，不滚动
+        if (itemTop >= viewTop && itemBottom <= viewBottom) return
+
+        // 滚动到中间位置
+        const targetScroll = itemTop - (containerHeight - itemHeight) / 2
+        container.scrollTo({
+            top: Math.max(0, targetScroll),
+            behavior: 'smooth'
+        })
+    })
+}
+
+// 判断是否为当前会话
+const isCurrentSession = (session) => {
+    if (!currentSession.value) return false
+    return currentSession.value.id === session.id ||
+           currentSession.value.sessionId === `session_${session.id}`
+}
 
 // 定义会话列表
 const sessionList = ref([])
@@ -349,6 +393,19 @@ const handleDeleteSession = (sessionId) => {
             console.log(res)
             // 提示删除成功
             ElMessage.success("删除成功")
+            // 如果删除的是当前会话，重置为初始界面
+            if (isCurrentSession({ id: sessionId })) {
+                createNewFrontendSession()
+                // 重置情绪分析结果
+                currentEmotion.value = {
+                    primaryEmotion: "中性",
+                    emotionScore: 50,
+                    isNegative: false,
+                    riskLevel: 0,
+                    suggestion: '情绪状态平稳',
+                    improvementSuggestions: []
+                }
+            }
             // 刷新会话列表
             getSessionPage()
         })
@@ -360,6 +417,8 @@ const handleSessionClick = (session) => {
     console.log(session)
     // 设置当前会话为点击的会话
     currentSession.value = session
+    // 滚动到列表中间
+    scrollSessionIntoMiddle(session.id)
     // 调用后端接口获取会话消息列表
     getSessionMessageList(session.id).then(res => {
         console.log(res)
@@ -444,8 +503,19 @@ const startNewSession = (message) => {
             // 否则，创建新会话
             currentSession.value = sessionData
         }
-        // 刷新会话列表
-        getSessionPage()
+        // 刷新会话列表，并在刷新后滚动到新会话
+        getSessionList({
+            pageSize: 10,
+            pageNum: 1
+        }).then(res => {
+            sessionList.value = res.records
+            // 从列表中找到匹配当前会话的项，更新 currentSession 以获得 id
+            const matched = res.records.find(s => `session_${s.id}` === currentSession.value.sessionId)
+            if (matched) {
+                currentSession.value = matched
+                scrollSessionIntoMiddle(matched.id)
+            }
+        })
 
         // 添加用户信息
         const userMessage = {
@@ -663,6 +733,7 @@ onMounted(() => {
             .session-list {
                 overflow-y: auto;
                 max-height: 200px;
+                position: relative;
                 scrollbar-width: thin;
                 scrollbar-color: rgba(64, 150, 255, 0.3) transparent;
 

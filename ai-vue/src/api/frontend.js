@@ -53,3 +53,12 @@ export function deleteSession(sessionId) {
 export function getEmotionAnalysis(sessionId) {
     return service.get(`/psychological-chat/session/${sessionId}/emotion`)
 }
+
+/**
+ * 创建或更新情绪日记
+ * @param {*} data  情绪日记数据
+ * @returns 创建或更新结果
+ * */
+export function submitDiaryData(data) {
+    return service.post('/emotion-diary', data)
+}
