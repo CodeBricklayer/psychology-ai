@@ -129,7 +129,7 @@ const submitForm = async (formEl) => {
                 // 注册成功后，跳转到登录页
                 router.push('/auth/login')
             }
-            if (code === 'BUSINESS_ERROR') {
+            if (code !== '401') {
                 ElMessage.error(data.msg)
             }
         })

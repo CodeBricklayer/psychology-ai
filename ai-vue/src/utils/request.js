@@ -33,7 +33,7 @@ service.interceptors.response.use(
         if (data.code === '200') {
             return data.data
         } else {
-            if (data.code === '-1') {
+            if (data.code === '401') {
                 if (!config.url.includes('/login')) {
                     ElMessage.error(data.msg || '登录过期，请重新登录')
 
