@@ -109,6 +109,10 @@ public enum ResultCode {
      * 用户类型无效
      */
     USER_TYPE_INVALID("6005", "用户类型无效"),
+    /**
+     * 用户不存在
+     */
+    USER_NOT_FOUND("6006", "用户不存在"),
 
     // token相关错误
     /**

@@ -82,6 +82,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userConverter.toUserLoginResponseVO(user, token, user.getUserType());
     }
 
+    /**
+     * 用户注册
+     *
+     * @param userRegisterCommandDTO 用户注册实体类
+     * @return 用户注册响应VO
+     */
     @Override
     public UserDetailResponseVO register(UserRegisterCommandDTO userRegisterCommandDTO) {
         // 验证密码是否一致
@@ -118,6 +124,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userMapper.insert(user);
 
         // 转换为用户详情响应VO
+        return userConverter.toUserDetailResponseVO(user);
+    }
+
+    /**
+     * 获取用户详情
+     *
+     * @param userId 用户ID
+     * @return 用户详情响应VO
+     */
+    @Override
+    public UserDetailResponseVO getUserById(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND);
+        }
         return userConverter.toUserDetailResponseVO(user);
     }
 }

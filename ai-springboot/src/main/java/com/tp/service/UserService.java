@@ -6,7 +6,6 @@ import com.tp.entity.dto.command.UserLoginCommandDTO;
 import com.tp.entity.dto.command.UserRegisterCommandDTO;
 import com.tp.entity.vo.response.UserDetailResponseVO;
 import com.tp.entity.vo.response.UserLoginResponseVO;
-import jakarta.validation.Valid;
 
 /**
  * 包名称：com.tp.service.impl
@@ -33,5 +32,13 @@ public interface UserService extends IService<User> {
      * @param userRegisterCommandDTO 用户注册实体类
      * @return 用户注册响应VO
      */
-    UserDetailResponseVO register(@Valid UserRegisterCommandDTO userRegisterCommandDTO);
+    UserDetailResponseVO register(UserRegisterCommandDTO userRegisterCommandDTO);
+
+    /**
+     * 获取用户详情
+     *
+     * @param userId 用户ID
+     * @return 用户详情响应VO
+     */
+    UserDetailResponseVO getUserById(Long userId);
 }
