@@ -58,7 +58,7 @@ const formData = reactive({
 const rules = reactive({
     username: [
         { required: true, message: '请输入用户名', trigger: 'blur' },
-        { max: 20, message: '用户名最多20个字符', trigger: 'blur' }
+        { max: 20, message: '用户名最多20个字符', trigger: 'blur' },
         {
             validator: (rule, value, callback) => {
                 if (!/^[a-zA-Z0-9_]{6,20}$/.test(value)) {
