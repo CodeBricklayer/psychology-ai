@@ -18,7 +18,6 @@
      
 </template>
 <script setup>
-import { ref } from 'vue'
 
 const iconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
 

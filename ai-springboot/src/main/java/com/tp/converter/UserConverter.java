@@ -11,7 +11,7 @@ import org.mapstruct.ReportingPolicy;
 /**
  * 包名称：com.tp.converter
  * 接口名称：UserConverter
- * 接口描述：
+ * 接口描述：用户实体转换器
  *
  * @author tanpeng
  * @version V4.0

@@ -23,8 +23,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
+    /**
+     * 公开路径
+     */
     private static final String[] PUBLIC_PATH = {"/", "/user/login", "/user/register"};
 
+    /**
+     * 配置安全过滤链
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http

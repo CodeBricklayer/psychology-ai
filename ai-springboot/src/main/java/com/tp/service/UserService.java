@@ -1,7 +1,6 @@
 package com.tp.service;
 
 import com.baomidou.mybatisplus.spring.service.IService;
-import com.tp.common.Result;
 import com.tp.entity.User;
 import com.tp.entity.dto.command.UserLoginCommandDTO;
 import com.tp.entity.vo.response.UserLoginResponseVO;
@@ -23,5 +22,5 @@ public interface UserService extends IService<User> {
      * @param commandDTO 用户登录实体类
      * @return 用户登录响应VO
      */
-    Result<UserLoginResponseVO> login(UserLoginCommandDTO commandDTO);
+    UserLoginResponseVO login(UserLoginCommandDTO commandDTO);
 }

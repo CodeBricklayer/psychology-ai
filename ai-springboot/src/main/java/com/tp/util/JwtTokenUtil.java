@@ -14,7 +14,7 @@ import java.util.Date;
 /**
  * 包名称：com.tp.util
  * 类名称：JwtTokenUtil
- * 类描述：
+ * 类描述：JWT 令牌工具类
  *
  * @author tanpeng
  * @version V4.0
@@ -28,6 +28,9 @@ public class JwtTokenUtil implements ApplicationContextAware {
      */
     private static ApplicationContext applicationContext;
 
+    /**
+     * 签发者
+     */
     private static final String ISSUER = "mental_health_assistant";
 
     /**

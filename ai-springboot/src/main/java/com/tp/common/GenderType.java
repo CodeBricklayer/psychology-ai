@@ -25,15 +25,25 @@ public enum GenderType {
     /**
      * 女
      */
-    FEMALE(2, "女");
+    FEMALE(2, "女"),
+    /**
+     * 未知性别
+     */
+    UNKNOWN(-1, "未知");
 
+    /**
+     * 性别码
+     */
     private final Integer code;
+    /**
+     * 性别描述
+     */
     private final String description;
 
     public static GenderType fromCode(Integer code) {
         return Arrays.stream(GenderType.values())
                 .filter(gender -> gender.getCode().equals(code))
                 .findFirst()
-                .orElse(null);
+                .orElse(UNKNOWN);
     }
 }

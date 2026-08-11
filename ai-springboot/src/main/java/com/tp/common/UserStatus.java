@@ -25,7 +25,12 @@ public enum UserStatus {
     /**
      * 禁用状态
      */
-    DISABLED(0, "禁用");
+    DISABLED(0, "禁用"),
+
+    /**
+     * 未知状态
+     */
+    UNKNOWN(-1, "未知");
 
     /**
      * 状态码
@@ -44,7 +49,7 @@ public enum UserStatus {
         return Arrays.stream(UserStatus.values())
                 .filter(status -> status.getCode().equals(code))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("未知的用户状态代码: " + code));
+                .orElse(UNKNOWN);
     }
 
 }

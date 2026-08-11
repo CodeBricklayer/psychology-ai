@@ -2,7 +2,6 @@ package com.tp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
-import com.tp.common.Result;
 import com.tp.common.ResultCode;
 import com.tp.converter.UserConverter;
 import com.tp.entity.User;
@@ -44,8 +43,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    /**
+     * 用户登录
+     *
+     * @param commandDTO 登录命令DTO
+     * @return 登录响应VO
+     */
     @Override
-    public Result<UserLoginResponseVO> login(UserLoginCommandDTO commandDTO) {
+    public UserLoginResponseVO login(UserLoginCommandDTO commandDTO) {
 
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getUsername, commandDTO.getUsername().trim())
@@ -55,10 +60,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 判断用户是否存在
         if (user == null) {
-           throw new BusinessException(ResultCode.USER_OR_PASSWORD_ERROR);
+            throw new BusinessException(ResultCode.USER_OR_PASSWORD_ERROR);
         }
 
-        if (!user.isActive()){
+        if (!user.isActive()) {
             throw new BusinessException(ResultCode.USER_OR_PASSWORD_ERROR);
         }
 
@@ -71,6 +76,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 生成 token
         String token = JwtTokenUtil.generateToken(user.getId(), user.getUsername(), user.getUserType());
 
-        return Result.ok(userConverter.toUserLoginResponseVO(user, token, user.getUserType()));
+        return userConverter.toUserLoginResponseVO(user, token, user.getUserType());
     }
 }

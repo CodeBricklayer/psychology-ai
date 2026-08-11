@@ -120,13 +120,13 @@ router.beforeEach((to, from, next) => {
     if (token) {
         const userInfo = JSON.parse(localStorage.getItem('userInfo'))
         // 如果是后台用户
-        if (userInfo.userType == 2) {
+        if (userInfo.userType === 2) {
             if (to.path.startsWith('/back')) {
                 next()
             } else {
                 next('/back/dashboard')
             }
-        } else if (userInfo.userType == 1){
+        } else if (userInfo.userType === 1){
             // 用户端账号只能访问前台路由
             if (to.path.startsWith('/back') || to.path.startsWith('/auth')) {
                 next('/')

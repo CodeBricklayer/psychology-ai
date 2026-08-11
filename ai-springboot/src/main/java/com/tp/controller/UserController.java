@@ -38,6 +38,6 @@ public class UserController {
      */
     @PostMapping("/login")
     public Result<UserLoginResponseVO> login(@Valid @RequestBody UserLoginCommandDTO userLoginCommandDTO) {
-        return userService.login(userLoginCommandDTO);
+        return Result.ok(userService.login(userLoginCommandDTO));
     }
 }

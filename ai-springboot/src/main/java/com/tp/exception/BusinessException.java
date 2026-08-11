@@ -28,6 +28,11 @@ public class BusinessException extends RuntimeException {
      */
     private final Object data;
 
+    /**
+     * 构造函数
+     *
+     * @param resultCode 结果码
+     */
     public BusinessException(ResultCode resultCode) {
         super(resultCode.getMsg());
         this.code = resultCode.getCode();

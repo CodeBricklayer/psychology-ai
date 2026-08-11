@@ -24,9 +24,19 @@ public enum UserType {
     /**
      * 管理员
      */
-    ADMIN(2, "管理员");
+    ADMIN(2, "管理员"),
+    /**
+     * 未知用户类型
+     */
+    UNKNOWN(-1, "未知");
 
+    /**
+     * 用户类型码
+     */
     private final Integer code;
+    /**
+     * 用户类型描述
+     */
     private final String description;
 
     /**
@@ -36,6 +46,6 @@ public enum UserType {
         return Arrays.stream(UserType.values())
                 .filter(type -> type.getCode().equals(code))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("未知的用户类型代码: " + code));
+                .orElse(UNKNOWN);
     }
 }
