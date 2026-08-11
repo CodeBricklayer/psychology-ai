@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * 包名称：com.tp.util
  * 类名称：ResponseUtil
- * 类描述：
+ * 类描述：响应工具类
  *
  * @author tanpeng
  * @version V4.0
