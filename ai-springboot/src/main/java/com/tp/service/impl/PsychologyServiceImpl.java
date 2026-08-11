@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.time.ZoneOffset;
 import java.util.Date;
 
 /**
@@ -84,7 +83,16 @@ public class PsychologyServiceImpl implements PsychologyService {
         // 创建初始消息
         ConsultationMessage initialMessage = consultationMessageConverter.toEntity(session.getId(), create);
         consultationMessageService.save(initialMessage);
-
-        return new StreamChatSession("session_" + session.getId(), userId, create.getInitialMessage(), session.getStartedAt().toEpochSecond(ZoneOffset.UTC), null, "ACTIVE", 1);
+        String sessionId = "session_" + session.getId();
+        return new StreamChatSession(
+                sessionId,
+                userId,
+                create.getInitialMessage(),
+                System.currentTimeMillis(),
+                // 24小时过期时间
+                System.currentTimeMillis() + 86400000L,
+                "ACTIVE",
+                1
+        );
     }
 }
