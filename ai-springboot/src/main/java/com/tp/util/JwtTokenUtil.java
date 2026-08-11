@@ -174,6 +174,19 @@ public class JwtTokenUtil implements ApplicationContextAware {
     }
 
     /**
+     * 提取当前请求中的用户ID
+     *
+     * @return 用户ID
+     */
+    public static Long extractUserId() {
+        String token = getCurrentToken();
+        if (StringUtils.hasText(token)) {
+            return extractTokenInfo(token).getUserId();
+        }
+        return null;
+    }
+
+    /**
      * 获取当前请求中的 Token
      *
      * @return Token

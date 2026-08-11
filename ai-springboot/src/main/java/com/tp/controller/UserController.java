@@ -1,9 +1,6 @@
 package com.tp.controller;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.tp.common.Result;
-import com.tp.common.ResultCode;
-import com.tp.entity.dto.TokenVerificationResult;
 import com.tp.entity.dto.command.UserLoginCommandDTO;
 import com.tp.entity.dto.command.UserRegisterCommandDTO;
 import com.tp.entity.vo.response.UserDetailResponseVO;
@@ -12,7 +9,6 @@ import com.tp.service.UserService;
 import com.tp.util.JwtTokenUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -65,11 +61,6 @@ public class UserController {
     public Result<UserDetailResponseVO> getCurrentUser() {
 
         // 获取当前登录用户信息
-        TokenVerificationResult tokenVerificationResult = JwtTokenUtil.extractTokenInfo(JwtTokenUtil.getCurrentToken());
-        if (tokenVerificationResult == null || !tokenVerificationResult.getIsValid()) {
-            return Result.error(ResultCode.TOKEN_INVALID.getCode(), ResultCode.TOKEN_INVALID.getMsg());
-        }
-        Long userId = tokenVerificationResult.getUserId();
-        return Result.ok(userService.getUserById(userId));
+        return Result.ok(userService.getUserById(JwtTokenUtil.extractUserId()));
     }
 }
