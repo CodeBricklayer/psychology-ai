@@ -82,7 +82,7 @@ public class PsychologyServiceImpl implements PsychologyService {
         consultationSessionService.save(session);
 
         // 创建初始消息
-        ConsultationMessage initialMessage = consultationMessageConverter.toEntity(userId, session.getId(), create);
+        ConsultationMessage initialMessage = consultationMessageConverter.toEntity(session.getId(), create);
         consultationMessageService.save(initialMessage);
 
         return new StreamChatSession("session_" + session.getId(), userId, create.getInitialMessage(), session.getStartedAt().toEpochSecond(ZoneOffset.UTC), null, "ACTIVE", 1);

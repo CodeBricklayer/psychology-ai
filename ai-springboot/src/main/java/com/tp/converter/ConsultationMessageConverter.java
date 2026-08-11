@@ -27,7 +27,6 @@ public interface ConsultationMessageConverter {
      * 将咨询消息创建DTO转换为咨询消息实体
      *
      * @param create    咨询消息创建DTO
-     * @param userId    用户ID
      * @param sessionId 会话ID
      * @return 咨询消息实体
      */
@@ -40,5 +39,5 @@ public interface ConsultationMessageConverter {
             @Mapping(target = "messageType", expression = "java(MessageType.TEXT.getCode())"),
             @Mapping(target = "senderType", expression = "java(SenderType.USER.getCode())")
     })
-    ConsultationMessage toEntity(Long userId, Long sessionId, ConsultationSessionCreateDTO create);
+    ConsultationMessage toEntity(Long sessionId, ConsultationSessionCreateDTO create);
 }
