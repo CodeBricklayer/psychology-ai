@@ -40,6 +40,12 @@ public enum GenderType {
      */
     private final String description;
 
+    /**
+     * 根据代码获取枚举值
+     *
+     * @param code 性别代码
+     * @return 性别枚举值
+     */
     public static GenderType fromCode(Integer code) {
         return Arrays.stream(GenderType.values())
                 .filter(gender -> gender.getCode().equals(code))

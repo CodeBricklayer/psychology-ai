@@ -3,9 +3,12 @@ package com.tp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.tp.common.ResultCode;
+import com.tp.common.UserType;
 import com.tp.converter.UserConverter;
 import com.tp.entity.User;
 import com.tp.entity.dto.command.UserLoginCommandDTO;
+import com.tp.entity.dto.command.UserRegisterCommandDTO;
+import com.tp.entity.vo.response.UserDetailResponseVO;
 import com.tp.entity.vo.response.UserLoginResponseVO;
 import com.tp.exception.BusinessException;
 import com.tp.mapper.UserMapper;
@@ -77,5 +80,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String token = JwtTokenUtil.generateToken(user.getId(), user.getUsername(), user.getUserType());
 
         return userConverter.toUserLoginResponseVO(user, token, user.getUserType());
+    }
+
+    @Override
+    public UserDetailResponseVO register(UserRegisterCommandDTO userRegisterCommandDTO) {
+        // 验证密码是否一致
+        if (!userRegisterCommandDTO.getPassword().equals(userRegisterCommandDTO.getConfirmPassword())) {
+            throw new BusinessException(ResultCode.PASSWORD_NOT_MATCH);
+        }
+
+        // 检查用户名是否已存在
+        LambdaQueryWrapper<User> usernameWrapper = new LambdaQueryWrapper<>();
+        usernameWrapper.eq(User::getUsername, userRegisterCommandDTO.getUsername().trim());
+        if (userMapper.selectCount(usernameWrapper) > 0) {
+            throw new BusinessException(ResultCode.ACCOUNT_SAME);
+        }
+
+        // 检查邮箱是否已存在
+        LambdaQueryWrapper<User> emailWrapper = new LambdaQueryWrapper<>();
+        emailWrapper.eq(User::getEmail, userRegisterCommandDTO.getEmail().trim());
+        if (userMapper.selectCount(emailWrapper) > 0) {
+            throw new BusinessException(ResultCode.EMAIL_SAME);
+        }
+
+        // 用户类型校验
+        if (!UserType.validateCode(userRegisterCommandDTO.getUserType())) {
+            throw new BusinessException(ResultCode.USER_TYPE_INVALID);
+        }
+
+        // 密码加密
+        userRegisterCommandDTO.setPassword(passwordEncoder.encode(userRegisterCommandDTO.getPassword()));
+
+        // 转换为用户实体
+        User user = userConverter.toUser(userRegisterCommandDTO);
+
+        // 插入用户
+        userMapper.insert(user);
+
+        // 转换为用户详情响应VO
+        return userConverter.toUserDetailResponseVO(user);
     }
 }

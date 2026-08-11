@@ -59,6 +59,15 @@ const rules = reactive({
     username: [
         { required: true, message: '请输入用户名', trigger: 'blur' },
         { max: 20, message: '用户名最多20个字符', trigger: 'blur' }
+        {
+            validator: (rule, value, callback) => {
+                if (!/^[a-zA-Z0-9_]{6,20}$/.test(value)) {
+                    callback(new Error('用户名只能包含字母、数字和下划线'))
+                } else {
+                    callback()
+                }
+            }, trigger: 'blur'
+        }
     ],
     phone: [
         { required: true, message: '请输入手机号', trigger: 'blur' },

@@ -43,7 +43,10 @@ public enum UserStatus {
     private final String description;
 
     /**
-     * 根据代码获取枚举
+     * 根据代码获取枚举值
+     *
+     * @param code 状态代码
+     * @return 状态枚举值
      */
     public static UserStatus fromCode(Integer code) {
         return Arrays.stream(UserStatus.values())

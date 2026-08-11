@@ -26,7 +26,7 @@ public class SecurityConfig {
     /**
      * 公开路径
      */
-    private static final String[] PUBLIC_PATH = {"/", "/user/login", "/user/register"};
+    private static final String[] PUBLIC_PATH = {"/", "/user/login", "/user/add"};
 
     /**
      * 配置安全过滤链

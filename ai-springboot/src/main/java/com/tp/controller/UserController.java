@@ -2,6 +2,8 @@ package com.tp.controller;
 
 import com.tp.common.Result;
 import com.tp.entity.dto.command.UserLoginCommandDTO;
+import com.tp.entity.dto.command.UserRegisterCommandDTO;
+import com.tp.entity.vo.response.UserDetailResponseVO;
 import com.tp.entity.vo.response.UserLoginResponseVO;
 import com.tp.service.UserService;
 import jakarta.validation.Valid;
@@ -39,5 +41,16 @@ public class UserController {
     @PostMapping("/login")
     public Result<UserLoginResponseVO> login(@Valid @RequestBody UserLoginCommandDTO userLoginCommandDTO) {
         return Result.ok(userService.login(userLoginCommandDTO));
+    }
+
+    /**
+     * 用户注册
+     *
+     * @param userRegisterCommandDTO 用户注册实体类
+     * @return 用户注册响应VO
+     */
+    @PostMapping("/add")
+    public Result<UserDetailResponseVO> add(@Valid @RequestBody UserRegisterCommandDTO userRegisterCommandDTO) {
+        return Result.ok(userService.register(userRegisterCommandDTO));
     }
 }

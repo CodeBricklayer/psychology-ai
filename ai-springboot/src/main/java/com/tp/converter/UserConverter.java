@@ -1,6 +1,9 @@
 package com.tp.converter;
 
+import com.tp.common.UserStatus;
+import com.tp.common.UserType;
 import com.tp.entity.User;
+import com.tp.entity.dto.command.UserRegisterCommandDTO;
 import com.tp.entity.vo.response.UserDetailResponseVO;
 import com.tp.entity.vo.response.UserLoginResponseVO;
 import org.mapstruct.Mapper;
@@ -17,13 +20,16 @@ import org.mapstruct.ReportingPolicy;
  * @version V4.0
  * @since 2026/8/10 17:40
  */
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
+@Mapper(componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.ERROR,
+        imports = {UserType.class, UserStatus.class}
+)
 public interface UserConverter {
 
     /**
      * 将用户实体转换为用户详情响应VO
      *
-     * @param user     用户实体
+     * @param user 用户实体
      * @return 用户详情响应VO
      */
     @Mappings({
@@ -60,5 +66,20 @@ public interface UserConverter {
             Integer roleType
     );
 
-
+    /**
+     * 将用户注册命令DTO转换为用户实体
+     *
+     * @param userRegisterCommandDTO 用户注册命令DTO
+     * @return 用户实体
+     */
+    @Mappings({
+            @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())"),
+            @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())"),
+            @Mapping(target = "status", expression = "java(UserStatus.NORMAL.getCode())"),
+            @Mapping(target = "userType", source = "userType", defaultExpression = "java(UserType.USER.getCode())"),
+            @Mapping(target = "id", ignore = true),
+            @Mapping(target = "avatar", ignore = true),
+            @Mapping(target = "birthday", ignore = true)
+    })
+    User toUser(UserRegisterCommandDTO userRegisterCommandDTO);
 }

@@ -89,16 +89,26 @@ public enum ResultCode {
      * 业务处理失败
      */
     BUSINESS_ERROR("6000", "业务处理失败"),
-
     /**
      * 用户名已存在
      */
     ACCOUNT_SAME("6001", "用户名已存在"),
-
+    /**
+     * 邮箱已存在
+     */
+    EMAIL_SAME("6002", "邮箱已存在"),
     /**
      * 用户或密码错误
      */
-    USER_OR_PASSWORD_ERROR("6002", "用户或密码错误"),
+    USER_OR_PASSWORD_ERROR("6003", "用户或密码错误"),
+    /**
+     * 密码不一致
+     */
+    PASSWORD_NOT_MATCH("6004", "密码不一致"),
+    /**
+     * 用户类型无效
+     */
+    USER_TYPE_INVALID("6005", "用户类型无效"),
 
     // token相关错误
     /**
@@ -108,15 +118,15 @@ public enum ResultCode {
     /**
      * token已过期
      */
-    TOKEN_EXPIRED("A0230", "token已过期"),
+    TOKEN_EXPIRED("A0231", "token已过期"),
     /**
      * token已加入黑名单
      */
-    TOKEN_BLOCKED("A0230", "token已加入黑名单"),
+    TOKEN_BLOCKED("A0232", "token已加入黑名单"),
     /**
      * token已被禁止访问
      */
-    TOKEN_ACCESS_FORBIDDEN("A0231", "token已被禁止访问"),
+    TOKEN_ACCESS_FORBIDDEN("A0233", "token已被禁止访问"),
     /**
      * 访问权限异常
      */

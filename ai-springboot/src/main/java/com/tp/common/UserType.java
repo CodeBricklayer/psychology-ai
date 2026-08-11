@@ -40,12 +40,25 @@ public enum UserType {
     private final String description;
 
     /**
-     * 根据代码获取枚举
+     * 根据代码获取枚举值
+     *
+     * @param code 用户类型代码
+     * @return 用户类型枚举值
      */
     public static UserType fromCode(Integer code) {
         return Arrays.stream(UserType.values())
                 .filter(type -> type.getCode().equals(code))
                 .findFirst()
                 .orElse(UNKNOWN);
+    }
+
+    /**
+     * 校验用户类型代码是否有效
+     *
+     * @param code 用户类型代码
+     * @return 是否有效
+     */
+    public static Boolean validateCode(Integer code) {
+        return fromCode(code) != UNKNOWN;
     }
 }
