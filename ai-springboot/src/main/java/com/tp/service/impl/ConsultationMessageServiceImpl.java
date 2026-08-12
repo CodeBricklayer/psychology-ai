@@ -61,6 +61,13 @@ public class ConsultationMessageServiceImpl extends ServiceImpl<ConsultationMess
         return consultationMessageConverter.toResponseVO(lastMessage);
     }
 
+    /**
+     * 保存用户咨询消息
+     *
+     * @param sessionId  会话ID
+     * @param content    消息内容
+     * @param emotionTag 情绪标签
+     */
     @Override
     public void saveUserMessage(Long sessionId, String content, String emotionTag) {
         ConsultationMessage message = ConsultationMessage.builder()
@@ -73,8 +80,15 @@ public class ConsultationMessageServiceImpl extends ServiceImpl<ConsultationMess
         save(message);
     }
 
+    /**
+     * 保存咨询消息
+     *
+     * @param sessionId  会话ID
+     * @param content    消息内容
+     * @param aiModel    使用的AI模型
+     */
     @Override
-    public ConsultationMessage saveAiMessage(Long sessionId, String content, String aiModel) {
+    public void saveAiMessage(Long sessionId, String content, String aiModel) {
         ConsultationMessage message = ConsultationMessage.builder()
                 .sessionId(sessionId)
                 .senderType(SenderType.ROBOT.getCode())
@@ -84,6 +98,5 @@ public class ConsultationMessageServiceImpl extends ServiceImpl<ConsultationMess
                 .createdAt(LocalDateTime.now())
                 .build();
         save(message);
-        return message;
     }
 }

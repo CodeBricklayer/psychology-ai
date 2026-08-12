@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tp.mapper.KnowledgeArticleMapper">
+
+    <!--
+        增加文章阅读量
+    -->
+    <update id="increaseReadCount">
+        UPDATE knowledge_article
+        SET read_count = COALESCE(read_count, 0) + 1
+        WHERE id = #{id}
+    </update>
+
+</mapper>

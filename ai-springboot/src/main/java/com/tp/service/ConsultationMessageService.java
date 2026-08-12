@@ -48,8 +48,6 @@ public interface ConsultationMessageService extends IService<ConsultationMessage
      * @param sessionId  会话ID
      * @param content    消息内容
      * @param aiModel    使用的AI模型
-     * @param senderType 发送者类型
-     * @return 保存的咨询消息实体
      */
-    ConsultationMessage saveAiMessage(Long sessionId, String content, String aiModel);
+    void saveAiMessage(Long sessionId, String content, String aiModel);
 }
