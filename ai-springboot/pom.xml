@@ -97,15 +97,22 @@
             <version>${mapstruct.version}</version>
         </dependency>
 
-
+        <!--hutool 网络工具-->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-http</artifactId>
         </dependency>
 
+        <!--hutool json工具-->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-json</artifactId>
+        </dependency>
+
+        <!--spring ai openai依赖-->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
     </dependencies>
 

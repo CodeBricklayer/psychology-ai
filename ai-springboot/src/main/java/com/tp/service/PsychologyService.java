@@ -1,7 +1,9 @@
 package com.tp.service;
 
 import com.tp.entity.dto.ConsultationSessionCreateDTO;
+import com.tp.entity.dto.ConsultationStreamDTO;
 import com.tp.entity.vo.response.StreamChatSession;
+import reactor.core.publisher.Flux;
 
 /**
  * 包名称：com.tp.service
@@ -21,5 +23,15 @@ public interface PsychologyService {
      * @param userId 用户ID
      * @return 咨询会话
      */
-    StreamChatSession startSession( Long userId,ConsultationSessionCreateDTO create);
+    StreamChatSession startSession(Long userId, ConsultationSessionCreateDTO create);
+
+    /**
+     * 流式咨询
+     *
+     * @param userId    用户ID
+     * @param sessionId 咨询会话ID
+     * @param userMessage 用户消息
+     * @return 咨询结果
+     */
+    Flux<String> streamChat(Long userId, String sessionId, String userMessage);
 }

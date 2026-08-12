@@ -4,6 +4,7 @@ import com.tp.common.MessageType;
 import com.tp.common.SenderType;
 import com.tp.entity.ConsultationMessage;
 import com.tp.entity.dto.ConsultationSessionCreateDTO;
+import com.tp.entity.vo.response.ConsultationMessageResponseVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -40,4 +41,17 @@ public interface ConsultationMessageConverter {
             @Mapping(target = "senderType", expression = "java(SenderType.USER.getCode())")
     })
     ConsultationMessage toEntity(Long sessionId, ConsultationSessionCreateDTO create);
+
+    /**
+     * 将咨询消息实体转换为咨询消息响应VO对象
+     *
+     * @param message 咨询消息实体
+     * @return 咨询消息响应VO对象
+     */
+    @Mappings({
+            @Mapping(target = "contentLength", expression = "java(message.getContent().length())"),
+            @Mapping(target = "messageTypeDesc", expression = "java(MessageType.fromCode(message.getMessageType()).getDescription())"),
+            @Mapping(target = "senderTypeDesc", expression = "java(SenderType.fromCode(message.getSenderType()).getDescription())")
+    })
+    ConsultationMessageResponseVO toResponseVO(ConsultationMessage message);
 }
