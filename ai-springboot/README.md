@@ -171,6 +171,7 @@ mybatis-plus:
 | POST | `/api/user/login` | 用户登录 |
 | POST | `/api/user/add` | 用户注册 |
 | GET | `/api/user/current` | 获取当前登录用户 |
+| POST | `/api/user/logout` | 退出登录并使当前 Token 失效 |
 
 ### 咨询会话接口
 
@@ -217,6 +218,8 @@ mybatis-plus:
 ```text
 Token: your-token
 ```
+
+调用 `/api/user/logout` 后，当前 Token 会加入内存黑名单，并在原 Token 到期后自动清理。当前实现不跨服务实例共享，后端重启后黑名单会丢失；集群或生产环境建议改为 Redis 等共享存储。
 
 JWT 配置位于 `application.yml`：
 

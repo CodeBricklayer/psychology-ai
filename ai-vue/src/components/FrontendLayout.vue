@@ -37,6 +37,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
+import { logout } from '@/api/admin'
 
 const router = useRouter()
 
@@ -50,10 +51,16 @@ const handleLogout = () => {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-    }).then(() => {
-        authStore.clearSession()
-        router.push('/auth/login')
-        ElMessage.success('退出登录成功')
+    }).then(async () => {
+        try {
+            await logout()
+            ElMessage.success('退出登录成功')
+        } catch {
+            // 请求拦截器已统一提示错误，本地会话仍需清理
+        } finally {
+            authStore.clearSession()
+            await router.push('/auth/login')
+        }
     }).catch(() => {
         ElMessage.info('已取消退出登录')
     })

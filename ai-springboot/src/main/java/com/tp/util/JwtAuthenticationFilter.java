@@ -8,6 +8,7 @@ import com.tp.entity.dto.TokenVerificationResult;
 import com.tp.entity.vo.response.UserDetailResponseVO;
 import com.tp.exception.BusinessException;
 import com.tp.service.UserService;
+import com.tp.service.TokenBlacklistService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -42,6 +43,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Resource
     private UserService userService;
 
+    /**
+     * Token黑名单服务
+     */
+    @Resource
+    private TokenBlacklistService tokenBlacklistService;
+
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
 
@@ -73,6 +80,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             clearSecurityContext();
             log.error("验证JWT Token失败", e);
             ResponseUtil.writeError(response, ResultCode.SYSTEM_ERROR);
+            return;
+        }
+
+        // 已注销的Token不允许继续访问
+        if (tokenBlacklistService.isBlocked(jwtToken)) {
+            clearSecurityContext();
+            ResponseUtil.writeError(response, ResultCode.TOKEN_BLOCKED);
             return;
         }
         if (tokenVerificationResult == null || !Boolean.TRUE.equals(tokenVerificationResult.getIsValid())) {

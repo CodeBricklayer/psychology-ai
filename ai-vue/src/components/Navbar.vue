@@ -31,6 +31,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAdminStore } from '@/stores/admin'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import { logout } from '@/api/admin'
 
 
 const router = useRouter()
@@ -44,10 +45,16 @@ const handleCommand = (command) => {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
-        }).then(() => {
-            authStore.clearSession()
-            ElMessage.success('退出登录成功')
-            router.push('/auth/login')
+        }).then(async () => {
+            try {
+                await logout()
+                ElMessage.success('退出登录成功')
+            } catch {
+                // 请求拦截器已统一提示错误，本地会话仍需清理
+            } finally {
+                authStore.clearSession()
+                await router.push('/auth/login')
+            }
         }).catch(() => {})
     }
 }

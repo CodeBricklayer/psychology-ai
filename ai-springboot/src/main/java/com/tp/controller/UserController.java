@@ -6,10 +6,12 @@ import com.tp.entity.dto.command.UserRegisterCommandDTO;
 import com.tp.entity.vo.response.UserDetailResponseVO;
 import com.tp.entity.vo.response.UserLoginResponseVO;
 import com.tp.service.UserService;
+import com.tp.service.TokenBlacklistService;
 import com.tp.util.JwtTokenUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * 包名称：com.tp.controller
@@ -29,6 +31,11 @@ public class UserController {
      * 用户服务接口
      */
     private final UserService userService;
+
+    /**
+     * Token黑名单服务
+     */
+    private final TokenBlacklistService tokenBlacklistService;
 
     /**
      * 用户登录
@@ -62,5 +69,18 @@ public class UserController {
 
         // 获取当前登录用户信息
         return Result.ok(userService.getUserById(JwtTokenUtil.extractUserId()));
+    }
+
+    /**
+     * 退出登录
+     *
+     * @return 操作结果
+     */
+    @PostMapping("/logout")
+    public Result<Void> logout() {
+        String token = JwtTokenUtil.getCurrentToken();
+        tokenBlacklistService.block(token, JwtTokenUtil.verifyToken(token).getExpiresAt());
+        SecurityContextHolder.clearContext();
+        return Result.ok();
     }
 }
