@@ -5,6 +5,7 @@ import com.tp.entity.dto.KnowledgeArticleCommandDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
 /**
@@ -35,4 +36,23 @@ public interface KnowledgeArticleConverter {
             @Mapping(target = "status", source = "commandDTO.status", defaultExpression = "java(0)")
     })
     KnowledgeArticle toEntity(Long authorId, KnowledgeArticleCommandDTO commandDTO);
+
+    /**
+     * 使用知识文章DTO更新实体
+     *
+     * @param authorId   作者ID
+     * @param commandDTO 知识文章DTO
+     * @param article    知识文章实体
+     */
+    @Mappings({
+            @Mapping(target = "id", ignore = true),
+            @Mapping(target = "authorId", source = "authorId"),
+            @Mapping(target = "readCount", ignore = true),
+            @Mapping(target = "publishedAt", ignore = true),
+            @Mapping(target = "createdAt", ignore = true),
+            @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())"),
+            @Mapping(target = "status", ignore = true)
+    })
+    void updateEntity(Long authorId, KnowledgeArticleCommandDTO commandDTO,
+                      @MappingTarget KnowledgeArticle article);
 }

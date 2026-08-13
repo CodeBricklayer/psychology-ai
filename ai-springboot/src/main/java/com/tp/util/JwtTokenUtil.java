@@ -72,7 +72,7 @@ public class JwtTokenUtil implements ApplicationContextAware {
                     .withIssuer(ISSUER)
                     .sign(algorithm);
         } catch (Exception e) {
-            throw new RuntimeException("生成 token 失败：" + e);
+            throw new IllegalStateException("生成 token 失败", e);
         }
 
     }

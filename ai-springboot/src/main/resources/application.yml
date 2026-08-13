@@ -5,9 +5,9 @@ spring:
 
   # 数据库配置
   datasource:
-    url: jdbc:mysql://localhost:3306/mental_health_assistant?useSSL=false&serverTimezone=UTC&useSSL=true
-    username: root
-    password: root
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   ai:
@@ -30,7 +30,7 @@ server:
 # JWT 配置
 jwt:
   # 密钥
-  secret: MySecretKeyForJWT2025!@#$%^&*()_+SecureKeyHere
+  secret: ${JWT_SECRET}
   # 24小时（毫秒）
   expiration: 86400000
   # 7天（毫秒）

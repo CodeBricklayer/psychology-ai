@@ -9,6 +9,8 @@ import com.tp.entity.dto.EmotionDiaryCommandDTO;
 import com.tp.service.EmotionDiaryService;
 import com.tp.util.JwtTokenUtil;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * 包名称：com.tp.controller
@@ -28,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2026/8/12
  */
 @RestController
+@Validated
 @RequiredArgsConstructor
 public class EmotionDiaryController {
 
@@ -44,7 +49,7 @@ public class EmotionDiaryController {
     /**
      * 创建或更新当前用户的情绪日记
      *
-     * @param diary 情绪日记实体
+     * @param commandDTO 情绪日记DTO
      * @return 操作结果
      */
     @PostMapping("/emotion-diary")
@@ -66,9 +71,11 @@ public class EmotionDiaryController {
      * @return 情绪日记分页结果
      */
     @GetMapping("/emotion-diary/admin/page")
+    @PreAuthorize("hasAuthority('ROLE_2')")
     public Result<IPage<EmotionDiary>> page(
-            @RequestParam(defaultValue = "1") long currentPage,
-            @RequestParam(defaultValue = "10") long pageSize,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "当前页码不能小于1") long currentPage,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "每页数量不能小于1")
+            @Max(value = 100, message = "每页数量不能超过100") long pageSize,
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Integer minMoodScore,
             @RequestParam(required = false) Integer maxMoodScore) {
@@ -83,6 +90,7 @@ public class EmotionDiaryController {
      * @return 操作结果
      */
     @DeleteMapping("/emotion-diary/admin/{id}")
+    @PreAuthorize("hasAuthority('ROLE_2')")
     public Result<Void> delete(@PathVariable Long id) {
         emotionDiaryService.removeById(id);
         return Result.ok();

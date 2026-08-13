@@ -2,12 +2,13 @@ package com.tp.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tp.common.Result;
-import com.tp.converter.KnowledgeArticleConverter;
 import com.tp.entity.KnowledgeArticle;
 import com.tp.entity.KnowledgeCategory;
 import com.tp.entity.dto.KnowledgeArticleCommandDTO;
 import com.tp.entity.dto.KnowledgeArticleStatusCommandDTO;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import com.tp.service.KnowledgeArticleService;
 import com.tp.service.KnowledgeCategoryService;
 import com.tp.util.JwtTokenUtil;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -34,6 +37,7 @@ import java.util.List;
  * @since 2026/8/12
  */
 @RestController
+@Validated
 @RequiredArgsConstructor
 @RequestMapping("/knowledge")
 public class KnowledgeController {
@@ -49,19 +53,13 @@ public class KnowledgeController {
     private final KnowledgeArticleService articleService;
 
     /**
-     * 知识文章转换器
-     */
-    private final KnowledgeArticleConverter articleConverter;
-
-    /**
      * 获取知识文章分类树
      *
      * @return 分类列表
      */
     @GetMapping("/category/tree")
     public Result<List<KnowledgeCategory>> categoryTree() {
-        return Result.ok(categoryService.lambdaQuery().eq(KnowledgeCategory::getStatus, 1)
-                .orderByAsc(KnowledgeCategory::getSortOrder).list());
+        return Result.ok(categoryService.listEnabled());
     }
 
     /**
@@ -76,8 +74,9 @@ public class KnowledgeController {
      */
     @GetMapping("/article/page")
     public Result<IPage<KnowledgeArticle>> articlePage(
-            @RequestParam(defaultValue = "1") long currentPage,
-            @RequestParam(defaultValue = "10") long pageSize,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "当前页码不能小于1") long currentPage,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "每页数量不能小于1")
+            @Max(value = 100, message = "每页数量不能超过100") long pageSize,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Integer status) {
@@ -102,11 +101,10 @@ public class KnowledgeController {
      * @return 创建后的文章实体
      */
     @PostMapping("/article")
+    @PreAuthorize("hasAuthority('ROLE_2')")
     public Result<KnowledgeArticle> createArticle(@Valid @RequestBody KnowledgeArticleCommandDTO commandDTO) {
-        KnowledgeArticle article = articleConverter.toEntity(
-                JwtTokenUtil.extractUserId(), commandDTO);
-        articleService.save(article);
-        return Result.ok(article);
+        return Result.ok(articleService.createArticle(
+                JwtTokenUtil.extractUserId(), commandDTO));
     }
 
     /**
@@ -117,12 +115,10 @@ public class KnowledgeController {
      * @return 操作结果
      */
     @PutMapping("/article/{id}")
+    @PreAuthorize("hasAuthority('ROLE_2')")
     public Result<Void> updateArticle(@PathVariable String id,
                                       @Valid @RequestBody KnowledgeArticleCommandDTO commandDTO) {
-        KnowledgeArticle article = articleConverter.toEntity(
-                JwtTokenUtil.extractUserId(), commandDTO);
-        article.setId(id);
-        articleService.updateById(article);
+        articleService.updateArticle(id, JwtTokenUtil.extractUserId(), commandDTO);
         return Result.ok();
     }
 
@@ -134,10 +130,10 @@ public class KnowledgeController {
      * @return 操作结果
      */
     @PutMapping("/article/{id}/status")
+    @PreAuthorize("hasAuthority('ROLE_2')")
     public Result<Void> updateArticleStatus(@PathVariable String id,
                                             @Valid @RequestBody KnowledgeArticleStatusCommandDTO commandDTO) {
-        articleService.lambdaUpdate().eq(KnowledgeArticle::getId, id)
-                .set(KnowledgeArticle::getStatus, commandDTO.getStatus()).update();
+        articleService.updateStatus(id, commandDTO.getStatus());
         return Result.ok();
     }
 
@@ -148,8 +144,9 @@ public class KnowledgeController {
      * @return 操作结果
      */
     @DeleteMapping("/article/{id}")
+    @PreAuthorize("hasAuthority('ROLE_2')")
     public Result<Void> deleteArticle(@PathVariable String id) {
-        articleService.removeById(id);
+        articleService.deleteArticle(id);
         return Result.ok();
     }
 }

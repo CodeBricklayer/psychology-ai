@@ -113,6 +113,14 @@ public enum ResultCode {
      * 用户不存在
      */
     USER_NOT_FOUND("6006", "用户不存在"),
+    /**
+     * 知识文章不存在
+     */
+    KNOWLEDGE_ARTICLE_NOT_FOUND("6007", "知识文章不存在"),
+    /**
+     * 咨询会话不存在
+     */
+    CONSULTATION_SESSION_NOT_FOUND("6008", "咨询会话不存在"),
 
     // token相关错误
     /**

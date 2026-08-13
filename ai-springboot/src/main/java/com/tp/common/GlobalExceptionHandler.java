@@ -1,6 +1,12 @@
 package com.tp.common;
 
 import com.tp.exception.BusinessException;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,6 +21,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * @since 2026/8/10 10:09
  */
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     /**
@@ -27,6 +34,31 @@ public class GlobalExceptionHandler {
     public Result<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         String errorMsg = e.getFieldErrors().getFirst().getDefaultMessage();
         return Result.error(ResultCode.PARAM_ERROR.getCode(), ResultCode.PARAM_ERROR.getMsg(), errorMsg);
+    }
+
+    /**
+     * 处理请求参数约束异常
+     *
+     * @param e 异常信息
+     * @return 异常结果
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public Result<String> handleConstraintViolationException(ConstraintViolationException e) {
+        String errorMsg = e.getConstraintViolations().iterator().next().getMessage();
+        return Result.error(ResultCode.PARAM_ERROR.getCode(), ResultCode.PARAM_ERROR.getMsg(), errorMsg);
+    }
+
+    /**
+     * 处理请求参数格式异常
+     *
+     * @param e 异常信息
+     * @return 异常结果
+     */
+    @ExceptionHandler({HttpMessageNotReadableException.class,
+            MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class})
+    public Result<?> handleRequestParameterException(Exception e) {
+        return Result.error(ResultCode.PARAM_INVALID.getCode(), ResultCode.PARAM_INVALID.getMsg());
     }
 
     /**
@@ -46,6 +78,18 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理访问权限异常
+     *
+     * @param e 异常信息
+     * @return 异常结果
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public Result<?> handleAccessDeniedException(AccessDeniedException e) {
+        return Result.error(ResultCode.ACCESS_UNAUTHORIZED.getCode(),
+                ResultCode.ACCESS_UNAUTHORIZED.getMsg());
+    }
+
+    /**
      * 系统异常
      *
      * @param e 异常信息
@@ -53,6 +97,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public Result<?> handleException(Exception e) {
-        return Result.error(ResultCode.SYSTEM_ERROR.getCode(), ResultCode.SYSTEM_ERROR.getMsg(), e.getMessage());
+        log.error("系统异常", e);
+        return Result.error(ResultCode.SYSTEM_ERROR.getCode(), ResultCode.SYSTEM_ERROR.getMsg());
     }
 }

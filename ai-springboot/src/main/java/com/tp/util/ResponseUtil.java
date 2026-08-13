@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.tp.common.Result;
 import com.tp.common.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -20,7 +21,14 @@ import java.nio.charset.StandardCharsets;
  * @version V4.0
  * @since 2026/8/11 13:18
  */
-public class ResponseUtil {
+@Slf4j
+public final class ResponseUtil {
+
+    /**
+     * 工具类禁止实例化
+     */
+    private ResponseUtil() {
+    }
 
     /**
      * 写入错误响应
@@ -34,6 +42,7 @@ public class ResponseUtil {
             case UNAUTHORIZED, ACCESS_UNAUTHORIZED, TOKEN_INVALID, TOKEN_EXPIRED, TOKEN_BLOCKED ->
                     HttpStatus.UNAUTHORIZED.value();
             case TOKEN_ACCESS_FORBIDDEN -> HttpStatus.FORBIDDEN.value();
+            case SYSTEM_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR.value();
             default -> HttpStatus.BAD_REQUEST.value();
         };
         response.setStatus(statusCode);
@@ -44,7 +53,7 @@ public class ResponseUtil {
             // 刷新缓冲区
             out.flush();
         } catch (IOException e) {
-            System.out.println("写入错误响应失败");
+            log.error("写入错误响应失败", e);
         }
     }
 }

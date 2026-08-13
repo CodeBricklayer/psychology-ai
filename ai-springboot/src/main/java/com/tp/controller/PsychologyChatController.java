@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
-import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -67,8 +66,6 @@ public class PsychologyChatController {
                 //将咨询流转换为ServerSentEvent
                 .map(fragment -> ServerSentEvent.<String>builder().event("message").data(JSONUtil.toJsonStr(Result.ok(Map.of("content", fragment, "type", "normal")))).build())
                 //添加完成事件
-                .concatWith(Flux.just(ServerSentEvent.<String>builder().event("done").data("{}").build()))
-                //延迟50毫秒，模拟咨询流
-                .delayElements(Duration.ofMillis(50));
+                .concatWith(Flux.just(ServerSentEvent.<String>builder().event("done").data("{}").build()));
     }
 }

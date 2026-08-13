@@ -1,16 +1,19 @@
 package com.tp.util;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.tp.common.ResultCode;
 import com.tp.common.UserStatus;
 import com.tp.config.SecurityConfig;
 import com.tp.entity.dto.TokenVerificationResult;
 import com.tp.entity.vo.response.UserDetailResponseVO;
+import com.tp.exception.BusinessException;
 import com.tp.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -33,6 +36,7 @@ import java.util.List;
  * @since 2026/8/11 13:00
  */
 @Component
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Resource
@@ -47,10 +51,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        // 获取请求的URI和方法
-        String requestUri = request.getRequestURI();
-        String method = request.getMethod();
-
         // 提取JWT Token
         String jwtToken = JwtTokenUtil.extractTokenFromRequest(request);
         // 如果JWT Token为空，清理Spring Security上下文
@@ -62,10 +62,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // 验证JWT Token
-        TokenVerificationResult tokenVerificationResult = JwtTokenUtil.extractTokenInfo(jwtToken);
-        if (tokenVerificationResult == null || !tokenVerificationResult.getIsValid()) {
+        TokenVerificationResult tokenVerificationResult;
+        try {
+            tokenVerificationResult = JwtTokenUtil.extractTokenInfo(jwtToken);
+        } catch (JWTVerificationException | IllegalArgumentException e) {
             clearSecurityContext();
-            // 写入错误响应
+            ResponseUtil.writeError(response, ResultCode.TOKEN_INVALID);
+            return;
+        } catch (Exception e) {
+            clearSecurityContext();
+            log.error("验证JWT Token失败", e);
+            ResponseUtil.writeError(response, ResultCode.SYSTEM_ERROR);
+            return;
+        }
+        if (tokenVerificationResult == null || !Boolean.TRUE.equals(tokenVerificationResult.getIsValid())) {
+            clearSecurityContext();
             ResponseUtil.writeError(response, ResultCode.TOKEN_INVALID);
             return;
         }
@@ -96,9 +107,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 将token添加到请求属性中
             request.setAttribute("jwtToken", jwtToken);
-        } catch (Exception e) {
+        } catch (BusinessException e) {
             clearSecurityContext();
             ResponseUtil.writeError(response, ResultCode.TOKEN_INVALID);
+            return;
+        } catch (Exception e) {
+            clearSecurityContext();
+            log.error("查询JWT用户信息失败", e);
+            ResponseUtil.writeError(response, ResultCode.SYSTEM_ERROR);
             return;
         }
 

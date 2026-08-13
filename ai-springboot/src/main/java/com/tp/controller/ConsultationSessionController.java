@@ -8,7 +8,11 @@ import com.tp.entity.ConsultationSession;
 import com.tp.entity.vo.response.ConsultationMessageResponseVO;
 import com.tp.service.ConsultationSessionService;
 import com.tp.util.JwtTokenUtil;
+import com.tp.util.ConsultationSessionIdUtil;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +31,7 @@ import java.util.List;
  * @since 2026/8/12
  */
 @RestController
+@Validated
 @RequiredArgsConstructor
 public class ConsultationSessionController {
 
@@ -44,8 +49,9 @@ public class ConsultationSessionController {
      */
     @GetMapping("/psychological-chat/sessions")
     public Result<IPage<ConsultationSession>> page(
-            @RequestParam(defaultValue = "1") long pageNum,
-            @RequestParam(defaultValue = "10") long pageSize) {
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "当前页码不能小于1") long pageNum,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "每页数量不能小于1")
+            @Max(value = 100, message = "每页数量不能超过100") long pageSize) {
         return Result.ok(consultationSessionService.pageByUser(
                 new Page<>(pageNum, pageSize), JwtTokenUtil.extractUserId()));
     }
@@ -58,7 +64,8 @@ public class ConsultationSessionController {
      */
     @GetMapping("/psychological-chat/sessions/{sessionId}/messages")
     public Result<List<ConsultationMessageResponseVO>> messages(@PathVariable Long sessionId) {
-        return Result.ok(consultationSessionService.listMessages(sessionId));
+        return Result.ok(consultationSessionService.listMessages(
+                sessionId, JwtTokenUtil.extractUserId()));
     }
 
     /**
@@ -81,9 +88,10 @@ public class ConsultationSessionController {
      */
     @GetMapping("/psychological-chat/session/{sessionId}/emotion")
     public Result<Object> emotion(@PathVariable String sessionId) {
-        Long id = Long.valueOf(sessionId.replace("session_", ""));
+        Long id = ConsultationSessionIdUtil.parse(sessionId);
         String analysis = consultationSessionService.getEmotionAnalysis(
                 id, JwtTokenUtil.extractUserId());
         return Result.ok(analysis == null ? java.util.Map.of() : JSONUtil.parseObj(analysis));
     }
+
 }

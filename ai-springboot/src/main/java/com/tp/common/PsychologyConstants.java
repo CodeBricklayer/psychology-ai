@@ -9,7 +9,13 @@ package com.tp.common;
  * @version V4.0
  * @since 2026/8/12 11:32
  */
-public class PsychologyConstants {
+public final class PsychologyConstants {
+
+    /**
+     * 常量类禁止实例化
+     */
+    private PsychologyConstants() {
+    }
 
     /**
      * 咨询会话ID前缀

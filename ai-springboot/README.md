@@ -43,18 +43,24 @@ mvn -version
 src/main/resources/application.yml
 ```
 
-默认配置如下：
+数据库连接信息通过环境变量提供，避免将生产凭据提交到仓库：
 
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/mental_health_assistant?useSSL=false&serverTimezone=UTC
-    username: root
-    password: root
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 ```
 
-请根据本地 MySQL 环境修改用户名和密码。
+Windows PowerShell 示例：
+
+```powershell
+$env:DB_URL = "jdbc:mysql://localhost:3306/mental_health_assistant?serverTimezone=UTC"
+$env:DB_USERNAME = "root"
+$env:DB_PASSWORD = "your-database-password"
+```
 
 数据库主要包含以下表：
 
@@ -216,11 +222,19 @@ JWT 配置位于 `application.yml`：
 
 ```yaml
 jwt:
-  secret: your-secret
+  secret: ${JWT_SECRET}
   expiration: 86400000
   header: Authorization
   token-prefix: "Bearer "
 ```
+
+JWT 密钥必须通过环境变量提供，且长度不能小于 32 个字符：
+
+```powershell
+$env:JWT_SECRET = "replace-with-a-random-secret-at-least-32-characters"
+```
+
+如果固定密钥曾经提交到公开仓库，应立即轮换，不能只删除配置文件中的明文。
 
 ## SSE 流式咨询
 

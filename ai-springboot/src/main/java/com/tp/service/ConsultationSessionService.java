@@ -31,9 +31,19 @@ public interface ConsultationSessionService extends IService<ConsultationSession
      * 查询会话消息列表
      *
      * @param sessionId 会话ID
+     * @param userId    用户ID
      * @return 会话消息列表
      */
-    List<ConsultationMessageResponseVO> listMessages(Long sessionId);
+    List<ConsultationMessageResponseVO> listMessages(Long sessionId, Long userId);
+
+    /**
+     * 查询用户的咨询会话
+     *
+     * @param sessionId 会话ID
+     * @param userId    用户ID
+     * @return 咨询会话
+     */
+    ConsultationSession getByUser(Long sessionId, Long userId);
 
     /**
      * 删除用户的咨询会话

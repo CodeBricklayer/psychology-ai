@@ -17,6 +17,7 @@ import com.tp.service.ConsultationMessageService;
 import com.tp.service.ConsultationSessionService;
 import com.tp.service.PsychologyService;
 import com.tp.service.UserService;
+import com.tp.util.ConsultationSessionIdUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -27,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Date;
 import java.util.List;
@@ -123,27 +126,10 @@ public class PsychologyServiceImpl implements PsychologyService {
      */
     @Override
     public Flux<String> streamChat(Long userId, String sessionId, String userMessage) {
-
-        return Flux.create(sink -> {
+        return Flux.defer(() -> {
             // 验证咨询会话ID格式
-            Long dbSessionId = extractSessionId(sessionId);
-            if (dbSessionId == null) {
-                sink.error(new RuntimeException("咨询会话ID格式错误"));
-                return;
-            }
-
-            // 验证咨询会话是否存在
-            ConsultationSession session = consultationSessionService.getById(dbSessionId);
-            if (session == null) {
-                sink.error(new RuntimeException("咨询会话不存在"));
-                return;
-            }
-
-            // 验证用户是否是会话创建者
-            if (!session.getUserId().equals(userId)) {
-                sink.error(new RuntimeException("您不是咨询会话的创建者"));
-                return;
-            }
+            Long dbSessionId = ConsultationSessionIdUtil.parse(sessionId);
+            consultationSessionService.getByUser(dbSessionId, userId);
 
             boolean isInitialMessage = false;
 
@@ -166,40 +152,19 @@ public class PsychologyServiceImpl implements PsychologyService {
             StringBuilder aiReply = new StringBuilder();
 
             // 发送咨询请求
-            chatClient.prompt(prompt)
+            Flux<String> chatFlux = chatClient.prompt(prompt)
                     .user(userMessage)
                     .advisors(advisorSpec ->
                             advisorSpec.param(ChatMemory.CONVERSATION_ID,
                                     PsychologyConstants.CONVERSATION_ID_PREFIX + sessionId))
                     .stream().content()
-                    .doOnNext(fragment -> {
-                                aiReply.append(fragment);
-                                sink.next(fragment);
-                            }
-                    )
-                    // 将AI返回的结果保存到咨询消息表
-                    .doOnComplete(() -> {
-                        consultationMessageService.saveAiMessage(dbSessionId, aiReply.toString(), "open-ai");
-                        // AI 流结束后通知外层 Flux，控制器才能继续发送 done 事件
-                        sink.complete();
-                    })
-                    .doOnError(sink::error)
-                    // 订阅
-                    .subscribe();
+                    .doOnNext(aiReply::append);
 
-        });
-    }
-
-    /**
-     * 从咨询会话ID中提取咨询会话ID
-     *
-     * @param sessionId 咨询会话ID
-     * @return 咨询会话ID
-     */
-    private Long extractSessionId(String sessionId) {
-        if (StringUtils.hasText(sessionId) && sessionId.startsWith(PsychologyConstants.SESSION_ID_PREFIX)) {
-            return Long.parseLong(sessionId.substring(PsychologyConstants.SESSION_ID_PREFIX.length()));
-        }
-        return null;
+            // 将阻塞的数据库写入切换到弹性线程池，避免占用AI流回调线程
+            return chatFlux.concatWith(Mono.fromRunnable(() -> consultationMessageService.saveAiMessage(
+                            dbSessionId, aiReply.toString(), "open-ai"))
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .then(Mono.empty()));
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 }

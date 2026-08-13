@@ -3,6 +3,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.tp.entity.KnowledgeArticle;
+import com.tp.entity.dto.KnowledgeArticleCommandDTO;
 
 /**
  * 包名称：com.tp.service
@@ -33,4 +34,37 @@ public interface KnowledgeArticleService extends IService<KnowledgeArticle> {
      * @return 文章详情
      */
     KnowledgeArticle getDetail(String id);
+
+    /**
+     * 创建知识文章
+     *
+     * @param authorId   作者ID
+     * @param commandDTO 知识文章DTO
+     * @return 创建后的知识文章
+     */
+    KnowledgeArticle createArticle(Long authorId, KnowledgeArticleCommandDTO commandDTO);
+
+    /**
+     * 更新知识文章
+     *
+     * @param id         文章ID
+     * @param authorId   作者ID
+     * @param commandDTO 知识文章DTO
+     */
+    void updateArticle(String id, Long authorId, KnowledgeArticleCommandDTO commandDTO);
+
+    /**
+     * 更新知识文章状态
+     *
+     * @param id     文章ID
+     * @param status 文章状态
+     */
+    void updateStatus(String id, Integer status);
+
+    /**
+     * 删除知识文章
+     *
+     * @param id 文章ID
+     */
+    void deleteArticle(String id);
 }
