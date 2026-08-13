@@ -29,7 +29,8 @@
                         show-password />
                 </el-form-item>
                 <el-form-item>
-                    <el-button class="btn" type="primary" @click="submitForm(submitFormRef)" size="large">注册</el-button>
+                    <el-button class="btn" type="primary" :loading="loading"
+                        @click="submitForm(submitFormRef)" size="large">注册</el-button>
                 </el-form-item>
             </el-form>
         </div>
@@ -43,6 +44,7 @@ import { register } from '@/api/frontend'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const loading = ref(false)
 
 const formData = reactive({
     username: '',
@@ -71,7 +73,6 @@ const rules = reactive({
     ],
     phone: [
         { required: true, message: '请输入手机号', trigger: 'blur' },
-        { type: 'number', trigger: 'blur' ,message: '请输入正确的手机号'},
         { min: 11, max: 11, message: '手机号长度必须为11位', trigger: 'blur' },
         {
             validator: (rule, value, callback) => {
@@ -128,21 +129,20 @@ const rules = reactive({
 const submitFormRef = ref(null)
 
 const submitForm = async (formEl) => {
-    if (!formEl) {
-        return
+    if (!formEl) return
+    const valid = await formEl.validate().catch(() => false)
+    if (!valid) return
+
+    loading.value = true
+    try {
+        await register(formData)
+        ElMessage.success('注册成功')
+        await router.push('/auth/login')
+    } catch {
+        // 请求拦截器已统一提示错误
+    } finally {
+        loading.value = false
     }
-    formEl.validate().then(() => {
-        register(formData).then(({ data, code }) => {
-            if (!data) {
-                ElMessage.success('注册成功')
-                // 注册成功后，跳转到登录页
-                router.push('/auth/login')
-            }
-            if (code !== '401') {
-                ElMessage.error(data.msg)
-            }
-        })
-    })
 }
 
 </script>

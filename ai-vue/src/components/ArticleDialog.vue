@@ -88,28 +88,8 @@ const dialogVisible = computed({
 
 const isEdit = computed(() => !!props.article?.id)
 
-// 监听编辑事件
-watch(() => props.article, (newVal) => {
-    if (newVal) {
-        nextTick(() => {
-            Object.assign(formData, newVal)
-            //使用现有id
-            businessId.value = newVal.id
-            // 封面Url
-            imgUrl.value = FILE_BASE_URL + newVal.coverImage
-        })
-    }
-})
-
 const handleClose = () => {
-    // 重置表单
-    formRef.value.resetFields()
-    // 重置ID
-    businessId.value = null
-    // 重置标签
-    formData.tagArray = []
-    // 重置封面图片和数据
-    handleRemove()
+    resetDialogState()
     emit('update:modelValue', false)
 }
 
@@ -121,6 +101,7 @@ const formData = reactive({
     "categoryId": "",
     "summary": "",
     "tags": "",
+    "tagsArray": [],
     "id": ""
 })
 
@@ -166,13 +147,15 @@ const beforeUpload = (file) => {
 const businessId = ref(null)
 
 const handleUploadRequest = async ({ file }) => {
-
-    // UUID生成文章ID
-    businessId.value = crypto.randomUUID()
-    const fileRes = await uploadFile(file, { businessId: businessId.value })
-    // 拼接完整的图片地址
-    imgUrl.value = FILE_BASE_URL + fileRes.filePath
-    formData.coverImage = fileRes.filePath
+    try {
+        // 同一篇新文章的多次上传复用业务ID
+        businessId.value ||= crypto.randomUUID()
+        const fileRes = await uploadFile(file, { businessId: businessId.value })
+        imgUrl.value = FILE_BASE_URL + fileRes.filePath
+        formData.coverImage = fileRes.filePath
+    } catch {
+        // 请求拦截器已统一提示错误
+    }
 }
 
 const handleRemove = () => {
@@ -182,7 +165,6 @@ const handleRemove = () => {
 
 // 富文本
 const handleContentChange = (data) => {
-    console.log(data, '富文本内容')
     formData.content = data.html
 }
 
@@ -205,33 +187,63 @@ const loading = ref(false)
 
 const formRef = ref()
 
-const handleSubmit = () => {
-    formRef.value.validate((valid, fields) => {
-        if (valid) {
-            loading.value = true
-        }
-        const submitData = {
-            ...formData,
-            tags: formData.tagsArray.join(',')
-        }
-
-        delete submitData.tagsArray
-
-        if (!isEdit.value) {
-            // 新增文章
-            submitData.id = businessId.value
-            createKnowledgeArticle(submitData).then((res) => {
-                loading.value = false
-                emit('success')
-            })
-        } else {
-            // 更新文章
-            updateKnowledgeArticle(props.article.id, submitData).then((res) => {
-                loading.value = false
-                emit('success')
-            })
-        }
+const resetDialogState = () => {
+    Object.assign(formData, {
+        title: '',
+        content: '',
+        coverImage: '',
+        categoryId: '',
+        summary: '',
+        tags: '',
+        tagsArray: [],
+        id: ''
     })
+    businessId.value = null
+    imgUrl.value = ''
+    btnPreview.value = false
+    editorInstance.value?.setHtml('')
+    nextTick(() => formRef.value?.clearValidate())
+}
+
+watch([() => props.modelValue, () => props.article], async ([visible, article]) => {
+    if (!visible) return
+    resetDialogState()
+    if (!article?.id) return
+
+    Object.assign(formData, article, {
+        tagsArray: article.tags ? article.tags.split(',').filter(Boolean) : []
+    })
+    businessId.value = article.id
+    imgUrl.value = article.coverImage ? FILE_BASE_URL + article.coverImage : ''
+    await nextTick()
+    editorInstance.value?.setHtml(formData.content || '')
+})
+
+const handleSubmit = async () => {
+    if (!formRef.value) return
+    const valid = await formRef.value.validate().catch(() => false)
+    if (!valid) return
+
+    const submitData = {
+        ...formData,
+        tags: formData.tagsArray.join(',')
+    }
+    delete submitData.tagsArray
+
+    loading.value = true
+    try {
+        if (isEdit.value) {
+            await updateKnowledgeArticle(props.article.id, submitData)
+        } else {
+            submitData.id = businessId.value
+            await createKnowledgeArticle(submitData)
+        }
+        emit('success')
+    } catch {
+        // 请求拦截器已统一提示错误
+    } finally {
+        loading.value = false
+    }
 }
 </script>
 

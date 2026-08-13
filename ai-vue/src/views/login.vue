@@ -23,7 +23,8 @@
         <el-form-item label="密码" prop="password">
           <el-input v-model="formData.password" size="large" placeholder="请输入密码" type="password" show-password />
         </el-form-item>
-        <el-button class="btn" type="primary" size="large" @click="submitForm(ruleFormRef)">登录</el-button>
+        <el-button class="btn" type="primary" size="large" :loading="loading"
+          @click="submitForm(ruleFormRef)">登录</el-button>
       </el-form>
       <div class="footer">
         <p>
@@ -40,8 +41,11 @@ import { reactive, ref } from 'vue'
 import { login } from '@/api/admin'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '@/stores/auth'
 
 const ruleFormRef = ref()
+const loading = ref(false)
+const authStore = useAuthStore()
 
 const formData = reactive({
   username: '',
@@ -56,29 +60,25 @@ const rules = reactive({
 const router = useRouter()
 const submitForm = async (formEl) => {
   if (!formEl) return
-  await formEl.validate((valid, fields) => {
-    if (valid) {
-      console.log(formData, "登录参数")
-      login(formData).then(data => {
-        // 判断token是否存在
-        if (!data.token) {
-          return ElMessage.error('登录失败')
-        }
-        ElMessage.success('登录成功')
-        // 登录成功，保存token和用户信息
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('userInfo', JSON.stringify(data.userInfo))
-        if (data.userInfo.userType === 2) {
-          router.push('/back/dashboard')
-        } else {
-          router.push('/')
-        }
-      })
-    } else {
-      ElMessage.error('登录失败')
-      console.log('登录失败', fields)
+  const valid = await formEl.validate().catch(() => false)
+  if (!valid) return
+
+  loading.value = true
+  try {
+    const data = await login(formData)
+    if (!data?.token || !data?.userInfo) {
+      ElMessage.error('登录响应数据不完整')
+      return
     }
-  })
+    authStore.setSession(data)
+    ElMessage.success('登录成功')
+    const redirect = router.currentRoute.value.query.redirect
+    await router.push(redirect || (authStore.isAdmin ? '/back/dashboard' : '/'))
+  } catch {
+    // 请求拦截器已统一提示错误
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

@@ -123,20 +123,15 @@ npm run preview
 
 ## ⚙️ 配置说明
 
-项目通过 Vite 开发服务器代理 API 请求到后端服务，配置位于 `vite.config.js`：
+项目通过 Vite 环境变量配置接口代理和文件访问地址。复制 `.env.example` 为 `.env.local`，再按实际环境修改：
 
-```js
-server: {
-  host: '127.0.0.1',
-  port: 3000,
-  proxy: {
-    '/api': {
-      target: 'http://159.75.169.224:1235',
-      changeOrigin: true
-    }
-  }
-}
+```dotenv
+VITE_API_PROXY_TARGET=http://127.0.0.1:1236
+VITE_FILE_BASE_URL=http://127.0.0.1:1236
 ```
+
+- `VITE_API_PROXY_TARGET`：开发环境 `/api` 代理目标；
+- `VITE_FILE_BASE_URL`：图片等文件资源的服务地址。
 
 > 生产环境部署时，需通过 Nginx 等反向代理工具配置 `/api` 路径转发至后端服务。
 

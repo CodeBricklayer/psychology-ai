@@ -192,7 +192,7 @@
                             <!-- AI正常返回消息 -->
                             <MarkdownRenderer v-else-if="msg.senderType === 2 && !msg.isError && msg.content && msg.content.length > 0" :content="msg.content"
                                 :is-ai-message="true" />
-                            <p v-else-if="msg.content" v-html="formatMessgaeContent(msg.content)"></p>
+                            <p v-else-if="msg.content" class="plain-message">{{ msg.content }}</p>
                         </div>
                         <div class="message-time">
                             {{ msg.senderType === 2 && isAiTyping ? '正在输入中...' : msg.createdAt }}
@@ -222,12 +222,16 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ChatRound, Clock, DeleteFilled, Promotion } from '@element-plus/icons-vue'
 import { startSession, getSessionList, getSessionMessageList, deleteSession, getEmotionAnalysis } from '@/api/frontend'
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+let activeStreamController = null
 
 const robotUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
 const likeUrl = new URL('@/assets/images/like.png', import.meta.url).href
@@ -488,21 +492,13 @@ const startNewSession = (message) => {
 
     // 调用后端接口创建新的会话
     startSession(sessionParams).then(res => {
-        console.log(res)
         // 将后端返回的数据转为前端会话格式
         const sessionData = {
             sessionId: res.sessionId,
             status: res.status,
             sessionTitle: sessionParams.sessionTitle
         }
-        // 设置当前是临时会话，更新数据
-        if (createNewFrontendSession.value && currentSession.value.status === "TEMP") {
-            // 更新为正式会话
-            Object.assign(currentSession.value, sessionData)
-        } else {
-            // 否则，创建新会话
-            currentSession.value = sessionData
-        }
+        currentSession.value = sessionData
         // 刷新会话列表，并在刷新后滚动到新会话
         getSessionList({
             pageSize: 10,
@@ -528,6 +524,8 @@ const startNewSession = (message) => {
 
         // 开始流式会话
         startAiResponse(currentSession.value.sessionId, message)
+    }).catch(() => {
+        userMessage.value = message
     })
 
 }
@@ -551,28 +549,30 @@ const startAiResponse = (sessionId, userMessage) => {
 
     // 调用流式接口
     // 用来终止fetch请求
+    activeStreamController?.abort()
     const ctrl = new AbortController()
+    activeStreamController = ctrl
+    let completed = false
+
     fetchEventSource('/api/psychological-chat/stream', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'text/event-stream',
-            'Token': localStorage.getItem('token')
+            'Token': authStore.token
         },
         body: JSON.stringify({
             sessionId,
             userMessage
         }),
         signal: ctrl.signal,
-        onopen: (response) => {
-            console.log(response)
-            if (response.headers.get('Content-Type') !== 'text/event-stream') {
-                ElMessage.error('AI助手回复返回非流式数据')
+        onopen: async (response) => {
+            const contentType = response.headers.get('Content-Type') || ''
+            if (!response.ok || !contentType.toLowerCase().includes('text/event-stream')) {
+                throw new Error('AI助手回复返回非流式数据')
             }
         },
-        onmessage: (event) => {
-
-            console.log(event.data, event.event)
+        onmessage: async (event) => {
             const raw = event.data.trim()
             if (!raw) return
             const eventName = event.event
@@ -580,38 +580,49 @@ const startAiResponse = (sessionId, userMessage) => {
             const aiMessage = messages.value[messages.value.length - 1]
 
             if (eventName === 'done') {
+                completed = true
                 isAiTyping.value = false
-                ctrl.abort()
                 // 进行情绪分析
                 loadSessionEmotion(currentSession.value.sessionId)
                 return
             }
-            const payload = JSON.parse(raw)
-
-            console.log(payload)
+            let payload
+            try {
+                payload = JSON.parse(raw)
+            } catch {
+                throw new Error('AI助手回复数据格式错误')
+            }
             const ok = String(payload.code) === '200'
             if (ok && payload.data && payload.data.content) {
                 aiMessage.content += payload.data.content
+                await nextTick()
             } else if (!ok) {
                 // 错误回复的显示
-                handleError(payload.message || 'AI助手回复失败')
+                throw new Error(payload.msg || 'AI助手回复失败')
             }
         },
-        onError: (error) => {
-            console.log(error)
+        onerror: (error) => {
             handleError(error.message || 'AI助手回复失败')
             throw error
         },
-        onClose: () => {
-            // 开始情绪分析
-            loadSessionEmotion(currentSession.value.sessionId)
+        onclose: () => {
+            if (!completed) {
+                handleError('AI助手连接意外中断')
+            }
+        }
+    }).catch(error => {
+        if (error.name !== 'AbortError' && isAiTyping.value) {
+            handleError(error.message || 'AI助手回复失败')
+        }
+    }).finally(() => {
+        if (activeStreamController === ctrl) {
+            activeStreamController = null
         }
     })
 }
 
 // 错误处理函数
 const handleError = (errorMessage) => {
-    console.log(errorMessage)
     // 当前会话的AI消息
     const aiMessage = messages.value[messages.value.length - 1]
     if (aiMessage) {
@@ -630,10 +641,7 @@ const handleKeyDown = (e) => {
     }
 }
 
-// 格式化消息内容，将换行符替换为HTML的<br>标签
-const formatMessgaeContent = (content) => {
-    return content.replace(/\n/g, '<br>')
-}
+onUnmounted(() => activeStreamController?.abort())
 
 // 组件挂载时，新建一个会话
 onMounted(() => {
@@ -644,6 +652,10 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.plain-message {
+    white-space: pre-wrap;
+}
+
 .consultation-container {
     margin: 0 auto;
     width: 1200px;

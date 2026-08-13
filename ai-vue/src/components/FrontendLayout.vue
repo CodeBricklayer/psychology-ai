@@ -33,14 +33,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage,ElMessageBox } from 'element-plus'
-import { logout } from '@/api/admin'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
 
 const router = useRouter()
 
-const isLoggedIn = ref(false)
+const authStore = useAuthStore()
+const { isLoggedIn } = storeToRefs(authStore)
 
 const botImg = new URL('@/assets/images/机器人.png', import.meta.url).href
 
@@ -50,15 +51,9 @@ const handleLogout = () => {
         cancelButtonText: '取消',
         type: 'warning'
     }).then(() => {
-        logout().then(() => {
-            localStorage.removeItem('token')
-            localStorage.removeItem('userInfo')
-            isLoggedIn.value = false
-            router.push('/auth/login')
-            ElMessage.success('退出登录成功')
-        }).catch(() => {
-            ElMessage.error('退出登录失败')
-        })
+        authStore.clearSession()
+        router.push('/auth/login')
+        ElMessage.success('退出登录成功')
     }).catch(() => {
         ElMessage.info('已取消退出登录')
     })
@@ -66,9 +61,6 @@ const handleLogout = () => {
 
 
 
-onMounted(() => {
-    isLoggedIn.value = localStorage.getItem('token') !== null
-})
 </script>
 
 <style lang="scss" scoped>

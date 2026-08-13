@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import BackendLayout from '@/components/BackendLayout.vue'
 import AuthLayout from '@/components/AuthLayout.vue'
 import FrontendLayout from '@/components/FrontendLayout.vue'
+import { useAuthStore } from '@/stores/auth'
+import { pinia } from '@/stores'
 
 // 路由配置
 const backendRoutes = [
@@ -9,6 +11,10 @@ const backendRoutes = [
         path: '/back',
         redirect: '/back/dashboard',
         component: BackendLayout,
+        meta: {
+            requiresAuth: true,
+            userType: 2
+        },
         children: [
             {
                 path: 'dashboard',
@@ -83,6 +89,8 @@ const frontendRoutes = [
                 component: () => import('@/views/consultation.vue'),
                 meta: {
                     title: 'AI咨询',
+                    requiresAuth: true,
+                    userType: 1
                 }
             },
             {
@@ -90,6 +98,8 @@ const frontendRoutes = [
                 component: () => import('@/views/emotionDiary.vue'),
                 meta: {
                     title: '情绪日志',
+                    requiresAuth: true,
+                    userType: 1
                 }
             },
             {
@@ -114,33 +124,25 @@ const router = createRouter({
 })
 
 // 路由前置守卫
-router.beforeEach((to, from, next) => {
-    const token = localStorage.getItem('token')
-    // 当前用户是否登录
-    if (token) {
-        const userInfo = JSON.parse(localStorage.getItem('userInfo'))
-        // 如果是后台用户
-        if (userInfo.userType === 2) {
-            if (to.path.startsWith('/back')) {
-                next()
-            } else {
-                next('/back/dashboard')
-            }
-        } else if (userInfo.userType === 1){
-            // 用户端账号只能访问前台路由
-            if (to.path.startsWith('/back') || to.path.startsWith('/auth')) {
-                next('/')
-            } else {
-                next()
-            }
+router.beforeEach((to) => {
+    const authStore = useAuthStore(pinia)
+
+    if (to.matched.some(record => record.meta.requiresAuth) && !authStore.isLoggedIn) {
+        return {
+            path: '/auth/login',
+            query: { redirect: to.fullPath }
         }
-    } else {
-        if (to.path.startsWith('/back')) {
-            // 如果是访问后台页面，那么跳转到登录页
-            next('/auth/login')
-        } else {
-            next()
-        }
+    }
+
+    const requiredUserType = to.matched
+        .map(record => record.meta.userType)
+        .find(userType => userType !== undefined)
+    if (requiredUserType && authStore.userInfo?.userType !== requiredUserType) {
+        return authStore.isAdmin ? '/back/dashboard' : '/'
+    }
+
+    if (to.path.startsWith('/auth') && authStore.isLoggedIn) {
+        return authStore.isAdmin ? '/back/dashboard' : '/'
     }
 })
 
