@@ -55,4 +55,9 @@ public final class PsychologyConstants {
      * 咨询会话ID前缀
      */
     public static final String CONVERSATION_ID_PREFIX =  "conversation_";
+
+    /**
+     * Token黑名单Redis键前缀
+     */
+    public static final String TOKEN_BLACKLIST_KEY_PREFIX = "auth:token:blacklist:";
 }

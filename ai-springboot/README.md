@@ -11,6 +11,7 @@
 - Spring Web MVC
 - Spring Security
 - MyBatis-Plus 3.5.17
+- Spring Data Redis
 - Spring AI 2.0.0
 - MapStruct 1.6.3
 - Hutool 5.8.46
@@ -24,6 +25,7 @@
 - JDK 21 或更高版本；
 - Maven 已正确配置；
 - MySQL 8.0+ 已启动；
+- Redis 已启动；
 - 已创建 `mental_health_assistant` 数据库；
 - 已执行项目提供的数据库脚本；
 - 已配置阿里云百炼兼容 OpenAI 接口的 API Key。
@@ -73,6 +75,29 @@ $env:DB_PASSWORD = "your-database-password"
 - `sys_file_info`：文件信息表；
 - `user_favorite`：用户收藏表；
 - `ai_analysis_task`：AI 分析任务表。
+
+## Redis 配置
+
+Redis 连接信息通过环境变量提供：
+
+```yaml
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      database: ${REDIS_DATABASE}
+```
+
+Windows PowerShell 示例：
+
+```powershell
+$env:REDIS_HOST = "localhost"
+$env:REDIS_PORT = "6379"
+$env:REDIS_PASSWORD = "your-redis-password"
+$env:REDIS_DATABASE = "0"
+```
 
 ## AI 配置
 
@@ -219,7 +244,7 @@ mybatis-plus:
 Token: your-token
 ```
 
-调用 `/api/user/logout` 后，当前 Token 会加入内存黑名单，并在原 Token 到期后自动清理。当前实现不跨服务实例共享，后端重启后黑名单会丢失；集群或生产环境建议改为 Redis 等共享存储。
+调用 `/api/user/logout` 后，当前 Token 的 SHA-256 摘要会写入 Redis 黑名单，TTL 与 Token 剩余有效期一致，到期后自动清理，并支持多服务实例共享。
 
 JWT 配置位于 `application.yml`：
 

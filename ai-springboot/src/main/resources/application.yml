@@ -17,6 +17,13 @@ spring:
       chat:
         model: qwen3.6-plus
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      database: ${REDIS_DATABASE}
+
 mybatis-plus:
   mapper-locations: classpath:/mapper/*.xml
 
